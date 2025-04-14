@@ -1,5 +1,5 @@
 name: 'AI-based PR Reviewer & Summarizer with Chat Capabilities'
-description: 'AI-based PR Reviewer & Summarizer with Chat Capabilities'
+description: 'AI-based PR Reviewer & Summarizer with Chat Capabilities. Supports OpenAI and Gemini LLMs.'
 branding:
   icon: 'git-merge'
   color: 'orange'
@@ -146,33 +146,33 @@ inputs:
     default: 'false'
   openai_base_url:
     required: false
-    description: 'The url of the openai api interface.'
+    description: 'The base URL for the LLM API. Defaults to OpenAI API URL.'
     default: 'https://api.openai.com/v1'
   openai_light_model:
     required: false
     description:
-      'Model to use for simple tasks like summarizing diff on a file.'
+      'Model to use for simple tasks like summarizing diff on a file. For OpenAI, defaults to gpt-3.5-turbo. For Gemini, use "gemini-pro".'
     default: 'gpt-3.5-turbo'
   openai_heavy_model:
     required: false
-    description: 'Model to use for complex tasks such as code reviews.'
+    description: 'Model to use for complex tasks such as code reviews. For OpenAI, defaults to gpt-4. For Gemini, use "gemini-pro".'
     default: 'gpt-4'
   openai_model_temperature:
     required: false
-    description: 'Temperature for GPT model'
+    description: 'Temperature for LLM model'
     default: '0.05'
   openai_retries:
     required: false
     description:
-      'How many times to retry OpenAI API in case of timeouts or errors?'
+      'How many times to retry LLM API in case of timeouts or errors?'
     default: '5'
   openai_timeout_ms:
     required: false
-    description: 'Timeout for OpenAI API call in millis'
+    description: 'Timeout for LLM API call in millis'
     default: '360000'
   openai_concurrency_limit:
     required: false
-    description: 'How many concurrent API calls to make to OpenAI servers?'
+    description: 'How many concurrent API calls to make to LLM servers?'
     default: '6'
   github_concurrency_limit:
     required: false
@@ -180,7 +180,7 @@ inputs:
     default: '6'
   system_message:
     required: false
-    description: 'System message to be sent to OpenAI'
+    description: 'System message to be sent to the LLM'
     default: |
       You are `@coderabbitai` (aka `github-actions[bot]`), a language model 
       trained by OpenAI. Your purpose is to act as a highly experienced 
@@ -241,3 +241,8 @@ inputs:
 runs:
   using: 'node16'
   main: 'dist/index.js'
+
+# Environment Variables
+
+# LLM_PROVIDER: The LLM provider to use. Options: 'openai' (default), 'gemini'
+# LLM_API_KEY: The API key for the selected LLM provider (previously OPENAI_API_KEY)

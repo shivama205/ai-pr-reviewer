@@ -13,12 +13,16 @@ We recommend installing the Pro version from [CodeRabbit](http://coderabbit.ai).
 ## Overview
 
 CodeRabbit `ai-pr-reviewer` is an AI-based code reviewer and summarizer for
-GitHub pull requests using OpenAI's `gpt-3.5-turbo` and `gpt-4` models. It is
-designed to be used as a GitHub Action and can be configured to run on every
+GitHub pull requests. It now supports multiple LLM providers:
+- **OpenAI**: Using `gpt-3.5-turbo` and `gpt-4` models (default)
+- **Gemini**: Using `gemini-pro` model from Google AI
+
+It is designed to be used as a GitHub Action and can be configured to run on every
 pull request and review comments
 
 ## Reviewer Features:
 
+- **Multi-LLM Support**: Works with both OpenAI and Gemini models, configurable via environment variables
 - **PR Summarization**: It generates a summary and release notes of the changes
   in the pull request.
 - **Line-by-line code change suggestions**: Reviews the changes line by line and
@@ -26,12 +30,12 @@ pull request and review comments
 - **Continuous, incremental reviews**: Reviews are performed on each commit
   within a pull request, rather than a one-time review on the entire pull
   request.
-- **Cost-effective and reduced noise**: Incremental reviews save on OpenAI costs
+- **Cost-effective and reduced noise**: Incremental reviews save on API costs
   and reduce noise by tracking changed files between commits and the base of the
   pull request.
 - **"Light" model for summary**: Designed to be used with a "light"
-  summarization model (e.g. `gpt-3.5-turbo`) and a "heavy" review model (e.g.
-  `gpt-4`). _For best results, use `gpt-4` as the "heavy" model, as thorough
+  summarization model and a "heavy" review model.
+  _For best results, use `gpt-4` or `gemini-pro` as the "heavy" model, as thorough
   code review needs strong reasoning abilities._
 - **Chat with bot**: Supports conversation with the bot in the context of lines
   of code or entire files, useful for providing context, generating test cases,
@@ -46,7 +50,7 @@ pull request and review comments
 
 To use this tool, you need to add the provided YAML file to your repository and
 configure the required environment variables, such as `GITHUB_TOKEN` and
-`OPENAI_API_KEY`. For more information on usage, examples, contributing, and
+the appropriate API key for your chosen LLM provider. For more information on usage, examples, contributing, and
 FAQs, you can refer to the sections below.
 
 - [Overview](#overview)
@@ -90,33 +94,56 @@ jobs:
       - uses: coderabbitai/ai-pr-reviewer@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # Choose one of the LLM provider configurations below:
+          
+          # For OpenAI (default):
+          LLM_PROVIDER: openai
+          LLM_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # Optional: OPENAI_API_ORG: ${{ secrets.OPENAI_API_ORG }}
+          
+          # Or for Gemini:
+          # LLM_PROVIDER: gemini
+          # LLM_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         with:
           debug: false
           review_simple_changes: false
           review_comment_lgtm: false
+          # If using Gemini, specify these models:
+          # openai_light_model: gemini-pro
+          # openai_heavy_model: gemini-pro
 ```
 
 #### Environment variables
 
 - `GITHUB_TOKEN`: This should already be available to the GitHub Action
   environment. This is used to add comments to the pull request.
-- `OPENAI_API_KEY`: use this to authenticate with OpenAI API. You can get one
-  [here](https://platform.openai.com/account/api-keys). Please add this key to
-  your GitHub Action secrets.
-- `OPENAI_API_ORG`: (optional) use this to use the specified organization with
-  OpenAI API if you have multiple. Please add this key to your GitHub Action
-  secrets.
+- `LLM_PROVIDER`: The LLM provider to use. Options: `openai` (default), `gemini`
+- `LLM_API_KEY`: The API key for the selected LLM provider
+  - For OpenAI: Get one [here](https://platform.openai.com/account/api-keys)
+  - For Gemini: Get one [here](https://aistudio.google.com/app/apikey)
 
-### Models: `gpt-4` and `gpt-3.5-turbo`
+Optional environment variables:
+- `OPENAI_API_ORG`: (optional, OpenAI only) use this to use a specific organization with
+  OpenAI API if you have multiple.
 
-Recommend using `gpt-3.5-turbo` for lighter tasks such as summarizing the
-changes (`openai_light_model` in configuration) and `gpt-4` for more complex
-review and commenting tasks (`openai_heavy_model` in configuration).
+Please add API keys to your GitHub Action secrets.
 
-Costs: `gpt-3.5-turbo` is dirt cheap. `gpt-4` is orders of magnitude more
-expensive, but the results are vastly superior. We are typically spending $20 a
-day for a 20 developer team with `gpt-4` based review and commenting.
+### Models
+
+#### OpenAI
+- Recommend using `gpt-3.5-turbo` for lighter tasks such as summarizing the
+  changes (`openai_light_model` in configuration) and `gpt-4` for more complex
+  review and commenting tasks (`openai_heavy_model` in configuration).
+
+#### Gemini
+- Use `gemini-pro` for both light and heavy models.
+  - Set `openai_light_model: gemini-pro` and `openai_heavy_model: gemini-pro` in your configuration.
+
+### Costs
+- OpenAI: `gpt-3.5-turbo` is dirt cheap. `gpt-4` is orders of magnitude more
+  expensive, but the results are vastly superior. We are typically spending $20 a
+  day for a 20 developer team with `gpt-4` based review and commenting.
+- Gemini: `gemini-pro` is typically cheaper than OpenAI's GPT-4 while offering comparable capabilities.
 
 ### Prompts & Configuration
 

@@ -1,6 +1,7 @@
 import {info} from '@actions/core'
 import {minimatch} from 'minimatch'
 import {TokenLimits} from './limits'
+import { LLMOptions } from './llm/provider'
 
 export class Options {
   debug: boolean
@@ -11,6 +12,7 @@ export class Options {
   reviewCommentLGTM: boolean
   pathFilters: PathFilter
   systemMessage: string
+  // Keep these for backward compatibility
   openaiLightModel: string
   openaiHeavyModel: string
   openaiModelTemperature: number
@@ -50,6 +52,7 @@ export class Options {
     this.reviewCommentLGTM = reviewCommentLGTM
     this.pathFilters = new PathFilter(pathFilters)
     this.systemMessage = systemMessage
+    // Maintain backward compatibility
     this.openaiLightModel = openaiLightModel
     this.openaiHeavyModel = openaiHeavyModel
     this.openaiModelTemperature = parseFloat(openaiModelTemperature)
@@ -73,12 +76,13 @@ export class Options {
     info(`review_comment_lgtm: ${this.reviewCommentLGTM}`)
     info(`path_filters: ${this.pathFilters}`)
     info(`system_message: ${this.systemMessage}`)
-    info(`openai_light_model: ${this.openaiLightModel}`)
-    info(`openai_heavy_model: ${this.openaiHeavyModel}`)
-    info(`openai_model_temperature: ${this.openaiModelTemperature}`)
-    info(`openai_retries: ${this.openaiRetries}`)
-    info(`openai_timeout_ms: ${this.openaiTimeoutMS}`)
-    info(`openai_concurrency_limit: ${this.openaiConcurrencyLimit}`)
+    info(`llm_provider: ${process.env.LLM_PROVIDER || 'openai'}`)
+    info(`light_model: ${this.openaiLightModel}`)
+    info(`heavy_model: ${this.openaiHeavyModel}`)
+    info(`model_temperature: ${this.openaiModelTemperature}`)
+    info(`retries: ${this.openaiRetries}`)
+    info(`timeout_ms: ${this.openaiTimeoutMS}`)
+    info(`llm_concurrency_limit: ${this.openaiConcurrencyLimit}`)
     info(`github_concurrency_limit: ${this.githubConcurrencyLimit}`)
     info(`summary_token_limits: ${this.lightTokenLimits.string()}`)
     info(`review_token_limits: ${this.heavyTokenLimits.string()}`)
@@ -138,7 +142,8 @@ export class PathFilter {
   }
 }
 
-export class OpenAIOptions {
+// Rename from OpenAIOptions to ModelOptions for LLM agnosticism
+export class ModelOptions implements LLMOptions {
   model: string
   tokenLimits: TokenLimits
 

@@ -3,10 +3,11 @@ import {
   getInput,
   getMultilineInput,
   setFailed,
-  warning
+  warning,
+  info
 } from '@actions/core'
 import {Bot} from './bot'
-import {OpenAIOptions, Options} from './options'
+import {ModelOptions, Options} from './options'
 import {Prompts} from './prompts'
 import {codeReview} from './review'
 import {handleReviewComment} from './review-comment'
@@ -40,17 +41,20 @@ async function run(): Promise<void> {
     getInput('summarize_release_notes')
   )
 
-  // Create two bots, one for summary and one for review
+  // Log the LLM provider being used
+  const provider = process.env.LLM_PROVIDER || 'openai'
+  info(`Using LLM provider: ${provider}`)
 
+  // Create two bots, one for summary and one for review
   let lightBot: Bot | null = null
   try {
     lightBot = new Bot(
       options,
-      new OpenAIOptions(options.openaiLightModel, options.lightTokenLimits)
+      new ModelOptions(options.openaiLightModel, options.lightTokenLimits)
     )
   } catch (e: any) {
     warning(
-      `Skipped: failed to create summary bot, please check your openai_api_key: ${e}, backtrace: ${e.stack}`
+      `Skipped: failed to create summary bot, please check your LLM_API_KEY: ${e}, backtrace: ${e.stack}`
     )
     return
   }
@@ -59,11 +63,11 @@ async function run(): Promise<void> {
   try {
     heavyBot = new Bot(
       options,
-      new OpenAIOptions(options.openaiHeavyModel, options.heavyTokenLimits)
+      new ModelOptions(options.openaiHeavyModel, options.heavyTokenLimits)
     )
   } catch (e: any) {
     warning(
-      `Skipped: failed to create review bot, please check your openai_api_key: ${e}, backtrace: ${e.stack}`
+      `Skipped: failed to create review bot, please check your LLM_API_KEY: ${e}, backtrace: ${e.stack}`
     )
     return
   }
